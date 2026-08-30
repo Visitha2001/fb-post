@@ -22,14 +22,30 @@ export async function POST(req: Request) {
     } = await req.json();
 
     // 1. Generate Image Mock using Pollinations
-    // We construct a detailed prompt incorporating user selections
-    const seed = Math.floor(Math.random() * 1000000);
+    let seed = Math.floor(Math.random() * 1000000);
     const width = aspectRatio === "16:9" ? 1024 : aspectRatio === "4:5" ? 768 : 1024;
     const height = aspectRatio === "16:9" ? 576 : aspectRatio === "4:5" ? 960 : 1024;
     
-    // In a real scenario with image-to-image, faceUrl would be used as a reference.
-    // Here we just generate the scene described by the user.
     let imagePrompt = `Photorealistic portrait of a person wearing ${clothing}, at ${background}, ${style} style, highly detailed, 8k resolution, raw photo, lifelike.`;
+    
+    if (faceUrl && faceUrl.includes("pollinations.ai")) {
+      try {
+        const urlObj = new URL(faceUrl);
+        const urlSeed = urlObj.searchParams.get("seed");
+        if (urlSeed) seed = parseInt(urlSeed, 10);
+        
+        const pathParts = urlObj.pathname.split("/prompt/");
+        if (pathParts.length > 1) {
+          const originalPrompt = decodeURIComponent(pathParts[1].split("?")[0]);
+          // Clean up the original prompt (remove plain background instructions)
+          const basePrompt = originalPrompt.replace(/plain solid bright green background, green screen/g, "").replace(/looking straight at camera, front view,/g, "");
+          imagePrompt = `${basePrompt}, wearing ${clothing}, at ${background}, ${style} style.`;
+        }
+      } catch (e) {
+        console.error("Failed to parse faceUrl for seed/prompt", e);
+      }
+    }
+
     if (description) {
        imagePrompt += ` Context: ${description}`;
     }
