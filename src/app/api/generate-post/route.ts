@@ -117,8 +117,11 @@ export async function POST(req: Request) {
     console.log("Gemini Face Description:", faceDescription);
 
     // ──────────────────────────────────────────────
-    // STEP 3: Generate post image using Hugging Face
+    // STEP 3: Generate post image using Pollinations
     // ──────────────────────────────────────────────
+    const width = aspectRatio === "16:9" ? 1920 : aspectRatio === "4:5" ? 1080 : 1080;
+    const height = aspectRatio === "16:9" ? 1080 : aspectRatio === "4:5" ? 1350 : 1080;
+
     const encodedPrompt = getPostImagePrompt({
       clothing,
       background,
@@ -127,36 +130,22 @@ export async function POST(req: Request) {
       faceDescription,
     });
 
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&nologo=true`;
+
+    const imageRes = await fetch(imageUrl);
+
     let finalImageUrl = "";
     let imageBase64 = "";
 
-    try {
-      if (!process.env.HUGGING_FACE_API_KEY) {
-        throw new Error("Missing HUGGING_FACE_API_KEY.");
-      }
-
-      const res = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0", {
-        headers: {
-          Authorization: `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-        body: JSON.stringify({ inputs: encodedPrompt }),
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Hugging Face API error: ${res.status} ${errorText}`);
-      }
-
-      const buffer = await res.arrayBuffer();
-      imageBase64 = Buffer.from(buffer).toString("base64");
-      finalImageUrl = `data:image/jpeg;base64,${imageBase64}`;
-    } catch (e) {
-      console.warn("Hugging Face Image Generation failed. Using fallback.", e);
+    if (!imageRes.ok) {
+      console.warn("Pollinations API failed. Using fallback.");
       const fallbackPixel = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
       imageBase64 = fallbackPixel;
       finalImageUrl = `data:image/png;base64,${fallbackPixel}`;
+    } else {
+      const imageBuf = await imageRes.arrayBuffer();
+      imageBase64 = Buffer.from(imageBuf).toString("base64");
+      finalImageUrl = `data:image/jpeg;base64,${imageBase64}`;
     }
 
     // ──────────────────────────────────────────────

@@ -29,5 +29,5 @@ export const getPostImagePrompt = ({
 shot on 35mm lens, f/1.8 aperture, full body or half body shot, candid moment, unposed, highly detailed, raw photo, ultra realistic. 
 [Negative_Prompt: close up portrait, headshot, mutated face, different person, wrong ethnicity, changed hair color, deformed, illustration, painting, cartoon, 3d, fake, plastic skin]`;
 
-  return imagePrompt;
+  return encodeURIComponent(imagePrompt);
 };

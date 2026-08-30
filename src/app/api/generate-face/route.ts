@@ -10,47 +10,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!process.env.HUGGING_FACE_API_KEY) {
-      return NextResponse.json({ error: "Missing HUGGING_FACE_API_KEY." }, { status: 500 });
-    }
-
     const { gender, prompt } = await req.json();
 
+    const seed = Math.floor(Math.random() * 1000000);
     const { frontPrompt, sidePrompt } = getFaceGenerationPrompt(gender, prompt);
 
-    const generateImage = async (imagePrompt: string) => {
-      const res = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0", {
-        headers: {
-          Authorization: `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-        body: JSON.stringify({ inputs: imagePrompt }),
-      });
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Hugging Face API error: ${res.status} ${errorText}`);
-      }
+    const frontUrl = `https://image.pollinations.ai/prompt/${frontPrompt}?seed=${seed}&width=1024&height=1024&nologo=true`;
+    const sideUrl = `https://image.pollinations.ai/prompt/${sidePrompt}?seed=${seed}&width=1024&height=1024&nologo=true`;
 
-      const buffer = await res.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString("base64");
-      return `data:image/jpeg;base64,${base64}`;
-    };
+    // Fetch both images sequentially
+    const frontRes = await fetch(frontUrl);
+    if (!frontRes.ok) throw new Error("Failed to generate front view");
+    const frontBuf = await frontRes.arrayBuffer();
+    const frontBase64 = Buffer.from(frontBuf).toString("base64");
 
-    // Generate Front View
-    const frontImage = await generateImage(frontPrompt);
-
-    // Generate Side View
-    const sideImage = await generateImage(sidePrompt);
+    const sideRes = await fetch(sideUrl);
+    if (!sideRes.ok) throw new Error("Failed to generate side view");
+    const sideBuf = await sideRes.arrayBuffer();
+    const sideBase64 = Buffer.from(sideBuf).toString("base64");
 
     return NextResponse.json({
-      frontImage,
-      sideImage,
+      frontImage: `data:image/jpeg;base64,${frontBase64}`,
+      sideImage: `data:image/jpeg;base64,${sideBase64}`,
     });
 
   } catch (error: any) {
     console.error("Generate Face Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to generate face via Hugging Face" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to generate face" }, { status: 500 });
   }
 }
