@@ -88,6 +88,7 @@ export function FaceGallery({ faces, setFaces }: { faces: IFaceCollection[], set
             <CardTitle className="font-[family-name:var(--font-outfit)]">My Face Gallery</CardTitle>
             <CardDescription>Select a face collection to use for posts, or upload a new one.</CardDescription>
           </div>
+          {/* Upload feature temporarily hidden
           <div className="relative">
             <input 
               type="file" 
@@ -101,6 +102,7 @@ export function FaceGallery({ faces, setFaces }: { faces: IFaceCollection[], set
               Upload Custom
             </Button>
           </div>
+          */}
         </CardHeader>
         <CardContent className="flex-1 p-0 overflow-hidden bg-slate-50/50 dark:bg-slate-950/50">
           <ScrollArea className="h-full w-full">
