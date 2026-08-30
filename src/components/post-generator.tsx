@@ -34,6 +34,7 @@ export function PostGenerator({ faces }: PostGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [generatedText, setGeneratedText] = useState<string | null>(null);
+  const [faceDescription, setFaceDescription] = useState<string | null>(null);
 
   const selectedFace = faces.find((f) => f.id === selectedFaceId);
 
@@ -42,6 +43,7 @@ export function PostGenerator({ faces }: PostGeneratorProps) {
     setIsGenerating(true);
     setGeneratedImage(null);
     setGeneratedText(null);
+    setFaceDescription(null);
 
     try {
       const res = await fetch("/api/generate-post", {
@@ -66,6 +68,7 @@ export function PostGenerator({ faces }: PostGeneratorProps) {
       const data = await res.json();
       setGeneratedImage(data.imageUrl);
       setGeneratedText(data.generatedText);
+      setFaceDescription(data.faceDescription);
     } catch (error: any) {
       console.error(error);
       alert(error.message || "Error generating post");
@@ -107,6 +110,17 @@ export function PostGenerator({ faces }: PostGeneratorProps) {
                   ))}
                 </div>
               </ScrollArea>
+            )}
+            
+            {faceDescription && (
+              <details className="text-sm bg-slate-50 dark:bg-slate-950 p-3 rounded-lg border border-slate-200 dark:border-slate-800 mt-2">
+                <summary className="font-medium cursor-pointer text-slate-700 dark:text-slate-300">
+                  View Generated Face Description
+                </summary>
+                <div className="mt-2 text-slate-600 dark:text-slate-400 whitespace-pre-wrap leading-relaxed">
+                  {faceDescription}
+                </div>
+              </details>
             )}
           </div>
 

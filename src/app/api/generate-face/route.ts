@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getFaceGenerationPrompt } from "@/lib/prompts";
 
 export async function POST(req: Request) {
   try {
@@ -9,50 +10,47 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!process.env.HUGGING_FACE_API_KEY) {
+      return NextResponse.json({ error: "Missing HUGGING_FACE_API_KEY." }, { status: 500 });
+    }
+
     const { gender, prompt } = await req.json();
 
-    // NOTE: Free-tier Gemini keys typically do not have Imagen access yet.
-    // For the UI to remain fully functional, we are simulating the generation 
-    // using a highly realistic placeholder generator. 
-    // In production with an Imagen-enabled key, you would call:
-    /*
-    import { GoogleGenerativeAI } from "@google/generative-ai";
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
-    const model = genAI.getGenerativeModel({ model: "imagen-3.0-generate-001" });
-    const result = await model.generateContent(`Generate a photorealistic ${gender} face. ${prompt}`);
-    const base64Image = result.response.text(); 
-    return NextResponse.json({ image: `data:image/jpeg;base64,${base64Image}` });
-    */
+    const { frontPrompt, sidePrompt } = getFaceGenerationPrompt(gender, prompt);
 
-    // MOCK RESPONSE -> Replaced with real open-source AI generation via Pollinations
-    const seed = Math.floor(Math.random() * 1000000);
-    
-    // Construct robust prompts for consistency
-    const basePrompt = `${prompt ? prompt + ', ' : ''}photorealistic studio portrait of a ${gender}, highly detailed, super realistic human being, 8k resolution, raw photo, lifelike, highly textured skin, natural lighting, intricate details`;
-    const frontPrompt = encodeURIComponent(`${basePrompt}, looking straight at camera, front view, plain solid bright green background, green screen`);
-    const sidePrompt = encodeURIComponent(`${basePrompt}, side profile view, plain solid bright green background, green screen`);
+    const generateImage = async (imagePrompt: string) => {
+      const res = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0", {
+        headers: {
+          Authorization: `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({ inputs: imagePrompt }),
+      });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Hugging Face API error: ${res.status} ${errorText}`);
+      }
 
-    const frontUrl = `https://image.pollinations.ai/prompt/${frontPrompt}?seed=${seed}&width=512&height=512&nologo=true`;
-    const sideUrl = `https://image.pollinations.ai/prompt/${sidePrompt}?seed=${seed}&width=512&height=512&nologo=true`;
-    
-    // Fetch both images sequentially to prevent rate-limiting or concurrency drops
-    const frontRes = await fetch(frontUrl);
-    if (!frontRes.ok) throw new Error("Failed to generate front view");
-    const frontBuf = await frontRes.arrayBuffer();
-    const frontBase64 = Buffer.from(frontBuf).toString('base64');
+      const buffer = await res.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString("base64");
+      return `data:image/jpeg;base64,${base64}`;
+    };
 
-    const sideRes = await fetch(sideUrl);
-    if (!sideRes.ok) throw new Error("Failed to generate side view");
-    const sideBuf = await sideRes.arrayBuffer();
-    const sideBase64 = Buffer.from(sideBuf).toString('base64');
+    // Generate Front View
+    const frontImage = await generateImage(frontPrompt);
 
-    return NextResponse.json({ 
-      frontImage: `data:image/jpeg;base64,${frontBase64}`,
-      sideImage: `data:image/jpeg;base64,${sideBase64}`
+    // Generate Side View
+    const sideImage = await generateImage(sidePrompt);
+
+    return NextResponse.json({
+      frontImage,
+      sideImage,
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Generate Face Error:", error);
-    return NextResponse.json({ error: "Failed to generate face" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to generate face via Hugging Face" }, { status: 500 });
   }
 }
