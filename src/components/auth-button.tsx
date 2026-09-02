@@ -12,9 +12,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User } from "lucide-react";
+import { useRecaptcha } from "@/components/recaptcha-provider";
+import { usePathname } from "next/navigation";
 
 export function AuthButton() {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
+  
+  // Only require captcha on the landing page where the captcha widget is shown
+  const isLandingPage = pathname === "/";
+  const isDevelopment = process.env.NODE_ENV === "development";
+  
+  // We use the optional chaining with a default value in case it's somehow missing,
+  // but it should be provided by RecaptchaProvider in layout.tsx.
+  let isVerified = true;
+  try {
+    const recaptcha = useRecaptcha();
+    isVerified = recaptcha.isVerified;
+  } catch (e) {
+    // Fallback if not wrapped in provider
+  }
+
+  const isLocked = isLandingPage && !isVerified && !isDevelopment;
 
   if (status === "loading") {
     return <div className="h-9 w-9 animate-pulse bg-slate-200 dark:bg-slate-800 rounded-full"></div>;
@@ -56,7 +75,11 @@ export function AuthButton() {
   }
 
   return (
-    <Button onClick={() => signIn("google")}>
+    <Button 
+      onClick={() => signIn("google")} 
+      disabled={isLocked}
+      className={isLocked ? "opacity-50 cursor-not-allowed" : ""}
+    >
       Sign In
     </Button>
   );
