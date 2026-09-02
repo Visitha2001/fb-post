@@ -11,14 +11,36 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { IFaceCollection } from "./workspace-client";
 import { v4 as uuidv4 } from "uuid";
 
-export function FaceGallery({ faces, setFaces }: { faces: IFaceCollection[], setFaces: (f: IFaceCollection[]) => void }) {
+export function FaceGallery({ 
+  faces, 
+  setFaces,
+  selectedFaceId,
+  setSelectedFaceId,
+  onNext 
+}: { 
+  faces: IFaceCollection[], 
+  setFaces: (f: IFaceCollection[]) => void,
+  selectedFaceId?: string | null,
+  setSelectedFaceId?: (id: string | null) => void,
+  onNext?: () => void
+}) {
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedFaceId, setSelectedFaceId] = useState<string | null>(null);
+  const [localSelectedFaceId, setLocalSelectedFaceId] = useState<string | null>(null);
+
+  const currentSelectedFaceId = selectedFaceId !== undefined ? selectedFaceId : localSelectedFaceId;
+
+  const handleSelectFace = (id: string | null) => {
+    if (setSelectedFaceId) setSelectedFaceId(id);
+    else setLocalSelectedFaceId(id);
+  };
   
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [displayCount, setDisplayCount] = useState(6);
+  const visibleFaces = faces.slice(0, displayCount);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -66,7 +88,7 @@ export function FaceGallery({ faces, setFaces }: { faces: IFaceCollection[], set
     const id = deleteConfirmId;
     setDeleteConfirmId(null);
     
-    if (selectedFaceId === id) setSelectedFaceId(null);
+    if (currentSelectedFaceId === id) handleSelectFace(null);
     try {
       const res = await fetch("/api/user/faces", {
         method: "DELETE",
@@ -104,8 +126,8 @@ export function FaceGallery({ faces, setFaces }: { faces: IFaceCollection[], set
           </div>
           */}
         </CardHeader>
-        <CardContent className="flex-1 p-0 overflow-hidden bg-slate-50/50 dark:bg-slate-950/50">
-          <ScrollArea className="h-full w-full">
+        <CardContent className="flex-1 p-0 flex flex-col overflow-hidden bg-slate-50/50 dark:bg-slate-950/50">
+          <ScrollArea className="flex-1 w-full">
             <div className="p-6 h-full">
               {faces.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-slate-500 py-20">
@@ -114,12 +136,12 @@ export function FaceGallery({ faces, setFaces }: { faces: IFaceCollection[], set
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
-                  {faces.map((collection, i) => {
-                    const isSelected = selectedFaceId === collection.id;
+                  {visibleFaces.map((collection, i) => {
+                    const isSelected = currentSelectedFaceId === collection.id;
                     return (
                       <div 
                         key={collection.id} 
-                        onClick={() => setSelectedFaceId(collection.id)}
+                        onClick={() => handleSelectFace(collection.id)}
                         className={`group relative w-full rounded-3xl overflow-hidden shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer ring-2 ring-offset-[4px] ring-offset-slate-50 dark:ring-offset-slate-950 bg-white dark:bg-slate-900 p-2 ${
                           isSelected 
                             ? "ring-blue-500 shadow-blue-500/30" 
@@ -146,10 +168,25 @@ export function FaceGallery({ faces, setFaces }: { faces: IFaceCollection[], set
                       </div>
                     );
                   })}
+                  
+                  {displayCount < faces.length && (
+                    <div className="col-span-1 md:col-span-2 lg:col-span-3 flex justify-center mt-4 pb-4">
+                      <Button variant="secondary" onClick={() => setDisplayCount(prev => prev + 6)}>
+                        Load More
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </ScrollArea>
+          {onNext && (
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
+              <Button variant="outline" className="w-full h-12 text-md font-semibold" onClick={onNext} disabled={!currentSelectedFaceId}>
+                Next Phase: Create Post →
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

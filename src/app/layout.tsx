@@ -32,7 +32,7 @@ export default function RootLayout({
       className={`${inter.variable} ${outfit.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="font-sans font-[family-name:var(--font-inter)] min-h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors">
+      <body suppressHydrationWarning className="font-sans font-[family-name:var(--font-inter)] min-h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors">
         <SessionProvider>
           <ThemeProvider
             attribute="class"
