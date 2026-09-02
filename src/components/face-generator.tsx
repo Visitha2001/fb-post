@@ -12,7 +12,7 @@ import { Loader2, Sparkles, Save } from "lucide-react";
 import { IFaceCollection } from "./workspace-client";
 import { v4 as uuidv4 } from "uuid";
 
-export function FaceGenerator({ onSave }: { onSave: (f: IFaceCollection) => void }) {
+export function FaceGenerator({ onSave, onNext }: { onSave: (f: IFaceCollection) => void, onNext?: () => void }) {
   const [gender, setGender] = useState<"male" | "female" | "neutral">("female");
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -96,7 +96,7 @@ export function FaceGenerator({ onSave }: { onSave: (f: IFaceCollection) => void
         <CardContent className="space-y-6">
           <div className="space-y-3">
             <Label>Select Gender</Label>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               {(["female", "male", "neutral"] as const).map((g) => (
                 <Button
                   key={g}
@@ -132,7 +132,7 @@ export function FaceGenerator({ onSave }: { onSave: (f: IFaceCollection) => void
           {generatedImages && (
             <div className="mt-8 space-y-6 border-2 border-indigo-100 dark:border-slate-800 rounded-xl p-6 bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center animate-in fade-in zoom-in-95 duration-300">
               <h3 className="font-semibold text-lg w-full text-center text-slate-800 dark:text-slate-200">Result</h3>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex flex-col items-center gap-2">
                   <span className="text-sm text-slate-500 font-medium">Front View</span>
                   <div className="relative h-48 w-48 rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800">
@@ -149,6 +149,14 @@ export function FaceGenerator({ onSave }: { onSave: (f: IFaceCollection) => void
               <Button onClick={handleSave} disabled={isSaving} className="w-full h-12" variant="default">
                 {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
                 {isSaving ? "Saving to Gallery..." : "Save Collection to Gallery"}
+              </Button>
+            </div>
+          )}
+
+          {onNext && (
+            <div className="pt-4 mt-6 border-t border-slate-200 dark:border-slate-800">
+              <Button variant="outline" className="w-full h-12 text-md font-semibold" onClick={onNext}>
+                Next Phase: Select Face →
               </Button>
             </div>
           )}

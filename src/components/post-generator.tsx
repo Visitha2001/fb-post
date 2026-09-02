@@ -19,10 +19,20 @@ import Image from "next/image";
 
 interface PostGeneratorProps {
   faces: IFaceCollection[];
+  selectedFaceId?: string | null;
+  setSelectedFaceId?: (id: string | null) => void;
 }
 
-export function PostGenerator({ faces }: PostGeneratorProps) {
-  const [selectedFaceId, setSelectedFaceId] = useState<string>("");
+export function PostGenerator({ faces, selectedFaceId, setSelectedFaceId }: PostGeneratorProps) {
+  const [localSelectedFaceId, setLocalSelectedFaceId] = useState<string | null>(null);
+  
+  const currentSelectedFaceId = selectedFaceId !== undefined ? selectedFaceId : localSelectedFaceId;
+
+  const handleSelectFace = (id: string) => {
+    if (setSelectedFaceId) setSelectedFaceId(id);
+    else setLocalSelectedFaceId(id);
+  };
+
   const [title, setTitle] = useState("My Awesome Post");
   const [language, setLanguage] = useState("English");
   const [style, setStyle] = useState("Casual");
@@ -36,10 +46,10 @@ export function PostGenerator({ faces }: PostGeneratorProps) {
   const [generatedText, setGeneratedText] = useState<string | null>(null);
   const [faceDescription, setFaceDescription] = useState<string | null>(null);
 
-  const selectedFace = faces.find((f) => f.id === selectedFaceId);
+  const selectedFace = faces.find((f) => f.id === currentSelectedFaceId);
 
   const handleGenerate = async () => {
-    if (!selectedFaceId) return alert("Please select a face first.");
+    if (!currentSelectedFaceId) return alert("Please select a face first.");
     setIsGenerating(true);
     setGeneratedImage(null);
     setGeneratedText(null);
@@ -100,9 +110,9 @@ export function PostGenerator({ faces }: PostGeneratorProps) {
                   {faces.map((face) => (
                     <button
                       key={face.id}
-                      onClick={() => setSelectedFaceId(face.id)}
+                      onClick={() => handleSelectFace(face.id)}
                       className={`relative w-20 h-20 rounded-full overflow-hidden border-4 transition-all ${
-                        selectedFaceId === face.id ? "border-blue-500 scale-110" : "border-transparent hover:border-slate-300"
+                        currentSelectedFaceId === face.id ? "border-blue-500 scale-110" : "border-transparent hover:border-slate-300"
                       }`}
                     >
                       <Image src={face.frontUrl} alt="Face" fill className="object-cover" />
@@ -131,7 +141,7 @@ export function PostGenerator({ faces }: PostGeneratorProps) {
           </div>
 
           {/* Language and Aspect Ratio (2 columns) */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Language</Label>
               <Select value={language} onValueChange={(val) => setLanguage(val || "")}>
@@ -160,7 +170,7 @@ export function PostGenerator({ faces }: PostGeneratorProps) {
           </div>
 
           {/* Style and Clothing */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="style">Style</Label>
               <Input id="style" value={style} onChange={(e) => setStyle(e.target.value)} placeholder="e.g., Fitness, Business" />
@@ -291,7 +301,7 @@ export function PostGenerator({ faces }: PostGeneratorProps) {
 
         {/* Action Buttons */}
         {generatedImage && generatedText && (
-          <div className="w-full max-w-[500px] mt-4 flex gap-2">
+          <div className="w-full max-w-[500px] mt-4 flex flex-col sm:flex-row gap-2">
             <Button variant="outline" className="flex-1" onClick={() => navigator.clipboard.writeText(generatedText)}>
               <Copy className="w-4 h-4 mr-2" /> Copy Text
             </Button>

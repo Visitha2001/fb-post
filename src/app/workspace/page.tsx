@@ -21,12 +21,12 @@ export default async function WorkspacePage() {
   }));
 
   return (
-    <div className="flex-1 p-6 md:p-12 max-w-6xl mx-auto w-full flex flex-col items-center">
-      <div className="mb-10 text-center space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white font-[family-name:var(--font-outfit)]">
+    <div className="flex-1 p-4 md:p-12 max-w-6xl mx-auto w-full flex flex-col items-center">
+      <div className="mb-6 md:mb-10 text-center space-y-2">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white font-[family-name:var(--font-outfit)]">
           AI Influencer Studio
         </h1>
-        <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl">
+        <p className="text-base md:text-lg text-slate-500 dark:text-slate-400 max-w-2xl">
           Manage your AI faces and construct viral posts seamlessly.
         </p>
       </div>
