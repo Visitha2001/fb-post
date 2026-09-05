@@ -1,5 +1,8 @@
+"use client"
+
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
+import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
@@ -40,6 +43,8 @@ const buttonVariants = cva(
   }
 )
 
+const MotionButton = motion.create(ButtonPrimitive as any)
+
 function Button({
   className,
   variant = "default",
@@ -47,7 +52,9 @@ function Button({
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
-    <ButtonPrimitive
+    <MotionButton
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.95 }}
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}

@@ -14,8 +14,9 @@ import {
   SelectValue,
 } from "./ui/select";
 import { ScrollArea } from "./ui/scroll-area";
-import { Globe, MoreHorizontal, ThumbsUp, MessageSquare, Share2, Loader2, Download, Save, Copy } from "lucide-react";
+import { Globe, MoreHorizontal, ThumbsUp, MessageSquare, Share2, Download, Save, Copy } from "lucide-react";
 import Image from "next/image";
+import { Loader } from "./ui/loader";
 
 interface PostGeneratorProps {
   faces: IFaceCollection[];
@@ -202,7 +203,7 @@ export function PostGenerator({ faces, selectedFaceId, setSelectedFaceId }: Post
           <Button className="w-full mt-4" size="lg" onClick={handleGenerate} disabled={isGenerating}>
             {isGenerating ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating...
+                <Loader className="mr-2 h-5 w-5" /> Generating...
               </>
             ) : (
               "Generate Post"
@@ -250,7 +251,7 @@ export function PostGenerator({ faces, selectedFaceId, setSelectedFaceId }: Post
           <div className={`w-full bg-slate-100 dark:bg-slate-900 relative ${aspectRatioClass} flex items-center justify-center border-y border-slate-200 dark:border-slate-800`}>
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center text-slate-400">
-                <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                <Loader className="h-8 w-8 mb-2" />
                 <span className="text-sm">Creating image...</span>
               </div>
             ) : generatedImage ? (
