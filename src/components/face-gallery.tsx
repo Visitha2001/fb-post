@@ -5,7 +5,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, UploadCloud, Trash2 } from "lucide-react";
+import { UploadCloud, Trash2 } from "lucide-react";
+import { Loader } from "./ui/loader";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { IFaceCollection } from "./workspace-client";
@@ -120,7 +121,7 @@ export function FaceGallery({
               className="hidden" 
             />
             <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-              {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+              {isUploading ? <Loader className="mr-2 h-4 w-4" /> : <UploadCloud className="mr-2 h-4 w-4" />}
               Upload Custom
             </Button>
           </div>

@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Sparkles, Save } from "lucide-react";
+import { Sparkles, Save } from "lucide-react";
+import { Loader } from "./ui/loader";
 
 import { IFaceCollection } from "./workspace-client";
 import { v4 as uuidv4 } from "uuid";
@@ -125,7 +126,7 @@ export function FaceGenerator({ onSave, onNext }: { onSave: (f: IFaceCollection)
             onClick={handleGenerate} 
             disabled={isGenerating}
           >
-            {isGenerating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+            {isGenerating ? <Loader className="mr-2 h-5 w-5" /> : <Sparkles className="mr-2 h-5 w-5" />}
             {isGenerating ? "Generating..." : "Generate AI Face"}
           </Button>
 
@@ -147,7 +148,7 @@ export function FaceGenerator({ onSave, onNext }: { onSave: (f: IFaceCollection)
                 </div>
               </div>
               <Button onClick={handleSave} disabled={isSaving} className="w-full h-12" variant="default">
-                {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
+                {isSaving ? <Loader className="mr-2 h-5 w-5" /> : <Save className="mr-2 h-5 w-5" />}
                 {isSaving ? "Saving to Gallery..." : "Save Collection to Gallery"}
               </Button>
             </div>
